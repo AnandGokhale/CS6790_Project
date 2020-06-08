@@ -11,7 +11,7 @@ def Camera_params():
                 [0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00], 
                 [0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00]])
 
-    assert (P0[:3,:3]==P1[:3,:3]).all() # just checking if matrices are for rectified images
+    assert (P0[:3,:3] == P1[:3,:3]).all() # just checking if matrices are for rectified images
 
     R = np.eye(3) # rotation matrix between left and right camera views
     T = P1[:,3] # translation between the views

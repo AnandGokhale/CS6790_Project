@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import networkx as nx
+from networkx.algorithms.approximation import max_clique,large_clique_size
+import time
 
 import data
 
@@ -86,7 +89,6 @@ kps2_m = np.array(kps2_m)
 W = np.zeros((len(kps1_m), len(kps1_m)))
 delta = 0.2 # nv
 
-
 for i in range(len(kps1_m)):
     pt11 = kps1_m[i].pt
     pt12 = kps2_m[i].pt 
@@ -101,11 +103,17 @@ for i in range(len(kps1_m)):
         dist2 = np.linalg.norm(w1_-w2_, ord=2)
         dist = abs(dist1-dist2)
         if dist < delta:
-            W[i][j] = 1
+            W[i,j] = 1
 
 # print(np.sum(W==1))
 
+# build clique
 
+G = nx.from_numpy_matrix(W)
+inlier_set = max_clique(G)
+inlier_set = list(inlier_set)
+kps1_inliers = kps1_m[inlier_set]
+kps2_inliers = kps2_m[inlier_set]
 
 plt.subplot(2,1,1)
 plt.imshow(img1L)
