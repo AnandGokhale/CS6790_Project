@@ -74,8 +74,8 @@ matcher = cv2.FlannBasedMatcher(index_params, search_params)
 matches = matcher.knnMatch(valDes1.astype(np.float32), valDes2.astype(np.float32), k=2)
 
 for (m,_) in matches:
-        kps2_m.append(valKps2[m.trainIdx])
-        kps1_m.append(valKps1[m.queryIdx])
+    kps2_m.append(valKps2[m.trainIdx])
+    kps1_m.append(valKps1[m.queryIdx])
 
 # visualize matched keypoints
 img1L = cv2.drawKeypoints(imgLeft_1, kps1_m, None, color=(0,255,0))
@@ -87,11 +87,11 @@ kps2_m = np.array(kps2_m)
 
 # A4 
 W = np.zeros((len(kps1_m), len(kps1_m)))
-delta = 0.2 # nv
+delta = 100 # nv
 
 for i in range(len(kps1_m)):
     pt11 = kps1_m[i].pt
-    pt12 = kps2_m[i].pt 
+    pt12 = kps2_m[i].pt
     w1 = img3d1[int(pt11[1]), int(pt11[0])]
     w2 = img3d2[int(pt12[1]), int(pt12[0])]
     dist1 = np.linalg.norm(w1-w2, ord=2)
@@ -107,21 +107,33 @@ for i in range(len(kps1_m)):
 
 # print(np.sum(W==1))
 
-# build clique
+def find_max_clique(W):
+    G = nx.from_numpy_matrix(W)
+    clique = list(max_clique(G))
+    clique_adj_graph = np.zeros_like(W)
+    xx, yy = np.meshgrid(clique, clique)
+    clique_adj_graph[xx,yy] = 1
+    return clique, clique_adj_graph
 
-G = nx.from_numpy_matrix(W)
-inlier_set = max_clique(G)
-inlier_set = list(inlier_set)
-kps1_inliers = kps1_m[inlier_set]
-kps2_inliers = kps2_m[inlier_set]
+def get_Q(clique_nodes,kps1_m,kps2_m,img3d1,img3d2):
+    Q = []
+    for i in clique_nodes:
+        pt11 = list(kps1_m[i].pt)
+        pt12 = list(kps2_m[i].pt)
+        w1 = list(img3d1[int(pt11[1]), int(pt11[0])])
+        w2 = list(img3d2[int(pt12[1]), int(pt12[0])])
+        Q.append([[pt11,w1],[pt12,w2]])
+    
+    return Q
+
+clique_nodes,_ = find_max_clique(W)
+Q = get_Q(clique_nodes,kps1_m,kps2_m,img3d1,img3d2)
 
 plt.subplot(2,1,1)
 plt.imshow(img1L)
 plt.subplot(2,1,2)
 plt.imshow(img2L)
 plt.show()
-
-
 
 
 
