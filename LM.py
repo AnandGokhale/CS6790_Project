@@ -4,7 +4,7 @@ import numpy as np
 
 class Feature:
 
-    def __init__(j,s,w):
+    def __init__(self,j,s,w):
         self.j = j #Feature image coordinate
         self.s = s #Feature descriptor
         self.w = w #Feature world coordinate
@@ -57,7 +57,7 @@ class FeatureSet:
         return [Rx,Ry,Rz,Tx,Ty,Tz]
 
 
-    def invRT(RTParams):
+    def invRT(self,RTParams):
         Rx,Ry,Rz,Tx,Ty,Tz = RTParams
 
         return [-1*Rx,-1*Ry,-1*Rz,-1*Tx,-1*Ty,-1*Tz]
@@ -70,10 +70,16 @@ class FeatureSet:
                 error += self.adjW[a,b] * np.square(  \
                                         self.features[a].j -  \
                                         self.P @   \
-                                        (generateRT(self.weights[i]) @ \
-                                        generateRT(self.invRT(self.weights[j])))@  \
+                                        (self.generateRT(self.weights[a]) @ \
+                                        self.generateRT(self.invRT(self.weights[b])))@  \
                                         self.features[b].w \
                                         )
 
         return error
 
+#Steps Ahead
+'''
+Write a function for calculating the gradient of the loss 
+Write a function to update the parameters based on the gradient
+Write a function to loop over this, and remove outliers
+'''
