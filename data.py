@@ -1,5 +1,7 @@
 import numpy as np 
 
+IMSIZE = (1241, 376)
+
 def Camera_params():
     #P_left
     P0 = np.array([[7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 0.000000000000e+00],
