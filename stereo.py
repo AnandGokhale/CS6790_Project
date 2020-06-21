@@ -5,8 +5,7 @@ import matplotlib.pyplot as pyplot
 from scipy.optimize import least_squares
 from math import cos, sin
 
-from data import *
-
+from utils import *
 
 '''
 In the code, there is 
@@ -146,7 +145,7 @@ def triangulate3D(trackPointsL_3d,trackPointsR_3d,numPoints,Proj1,Proj2):
 
     return d3dPoints
 
-def generateAdjMatrix(d3dPointsT1,d3dPointsT2,distDifference=0.01):
+def generateAdjMatrix(d3dPointsT1,d3dPointsT2,distDifference=0.2):
     numPoints = d3dPointsT1.shape[0]
     W = np.zeros((numPoints, numPoints))
 
@@ -223,7 +222,7 @@ def minimizeReprojection(dof,d2dPoints1, d2dPoints2, d3dPoints1, d3dPoints2, w2c
     perspectiveProj[1,-1] = dof[4]
     perspectiveProj[2,-1] = dof[5]
 
-    print (perspectiveProj)
+    # print (perspectiveProj)
 
     numPoints = d2dPoints1.shape[0]
     errorA = np.zeros((numPoints,3))
@@ -300,6 +299,8 @@ def estimateOdometry(img1,img2):
 
     # Eliminate inliers
     W = generateAdjMatrix(d3dPointsT1,d3dPointsT2,0.01)
+    print('W:', np.sum(W==1))
+    print('W: ', W.shape)
 
     #Max Clique TIME BOISSS
 
@@ -333,17 +334,17 @@ def estimateOdometry(img1,img2):
 
     pruneIdx = xRes1[0].tolist() + yRes1[0].tolist() + zRes1[0].tolist() + (xRes2[0] - pointsInClique).tolist() + (yRes2[0] - pointsInClique).tolist() +  (zRes2[0] - pointsInClique).tolist()
     if (len(pruneIdx) > 0):
-        uPrundeIdx = list(set(pruneIdx))
-        trackedPoints1_KLT_L = np.delete(trackedPoints1_KLT_L, uPrundeIdx, axis=0)
-        trackedPoints2_KLT_L = np.delete(trackedPoints2_KLT_L, uPrundeIdx, axis=0)
+        uPruneIdx = list(set(pruneIdx))
+        trackedPoints1L = np.delete(trackedPoints1L, uPruneIdx, axis=0)
+        trackedPoints2L = np.delete(trackedPoints2L, uPruneIdx, axis=0)
         cliqued3dPointT1 = np.delete(cliqued3dPointT1, uPruneIdx, axis=0)
         cliqued3dPointT2 = np.delete(cliqued3dPointT2, uPruneIdx, axis=0)
         
         optRes = least_squares(minimizeReprojection, optRes.x, method='lm', max_nfev=2000,
-                        args=(trackedPoints1_KLT_L, trackedPoints2_KLT_L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
+                        args=(trackedPoints1L, trackedPoints2L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
     
 
-    print(optRes.x)
+    return optRes.x, optRes.cost
     
 #clique size check
 # reproj error check
@@ -353,20 +354,41 @@ def estimateOdometry(img1,img2):
 
 
 
+if __name__=='__main__':
+    P0L, P0R = getGt('./dataset/sequences/00/calib.txt')
+    P1L, P1R = getGt('./dataset/sequences/00/calib.txt') # same calibration file
+    # print(P0)
+    # print(P1)
+    assert (P0L[:,-1]==np.zeros(3)).all() == 1 # first camera translation is zero
+    K = P0L[:,:-1]
+
+
+    ImT1_L = cv2.imread('./000001.png', 0)    #0 flag returns a grayscale image
+    ImT1_R = cv2.imread('./1_000001.png', 0)
+
+    ImT2_L = cv2.imread('./000003.png', 0)
+    ImT2_R = cv2.imread('./1_000003.png', 0)
+
+    dofs, cost = estimateOdometry([ImT1_L,ImT1_R],[ImT2_L,ImT2_R])
+    print('Residual error :', cost)
+    R = genEulerZXZMatrix(dofs[0], dofs[1], dofs[2])
+    t = np.array(dofs[3:])
+
+    inds = [0,2]
+    poses = getPose('./dataset/poses/00.txt', inds)
+
+    R1 = np.linalg.inv(K)@poses[0][:,:-1]
+    t1 = np.linalg.inv(K)@poses[0][:,-1]
+
+    R2 = np.linalg.inv(K)@poses[1][:,:-1]
+    t2 = np.linalg.inv(K)@poses[1][:,-1]
+
+    R_rel = R1.T@R2
+    t_rel = t2-t1
+
+    t_err, theta = getErrors(R, R_rel, t, t_rel)
+    print('Translation error :', t_err, '\t Rotation error:', theta)
 
 
 
-
-
-    
-
-ImT1_L = cv2.imread('./000001.png', 0)    #0 flag returns a grayscale image
-ImT1_R = cv2.imread('./1_000001.png', 0)
-
-ImT2_L = cv2.imread('./000003.png', 0)
-ImT2_R = cv2.imread('./1_000003.png', 0)
-
-estimateOdometry([ImT1_L,ImT1_R],[ImT2_L,ImT2_R])
-
-
-exit()
+# exit()
