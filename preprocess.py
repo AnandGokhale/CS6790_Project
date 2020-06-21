@@ -4,18 +4,15 @@ import matplotlib.pyplot as plt
 from utils import get3Dpoints
 from stereo import *
 from utils import *
+
+
 ### projection matrices for left and right cameras for sequence 00
-P0L = np.array([[7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, 0.000000000000e+00],
-                [0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00], 
-                [0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00]]) 
-P0R  = np.array([[7.188560000000e+02, 0.000000000000e+00, 6.071928000000e+02, -3.861448000000e+02], 
-                [0.000000000000e+00, 7.188560000000e+02, 1.852157000000e+02, 0.000000000000e+00], 
-                [0.000000000000e+00, 0.000000000000e+00, 1.000000000000e+00, 0.000000000000e+00]])
-assert (P0L[:3,:3]==P0R[:3,:3]).all() # just checking if matrices are for rectified images
-
-
-P1L = P0L
-P1R = P0R 
+P0L, P0R = getGt('./dataset/sequences/00/calib.txt')
+P1L, P1R = getGt('./dataset/sequences/00/calib.txt') # same calibration file
+# print(P0)
+# print(P1)
+assert (P0L[:,-1]==np.zeros(3)).all() == 1 # first camera translation is zero
+K = P0L[:,:-1]
 
 
 
