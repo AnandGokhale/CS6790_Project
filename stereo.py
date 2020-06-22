@@ -20,6 +20,7 @@ L = 0
 
 R = 1
 
+IMSIZE = (1241, 376)  # (width, height) 
 
 
 def estDisparity(imgL,imgR,engine = cv2.StereoSGBM_create(numDisparities=16, blockSize=15)):
@@ -80,7 +81,7 @@ def Matcher(img1,img2,kp1,des1,kp2,des2):
             kps1_m.append(kp1[m.queryIdx])
 
 
-    debugMatcher(img1,kps1_m,img2,kps2_m)
+    #debugMatcher(img1,kps1_m,img2,kps2_m)
 
 
     # Converting Keypoints to Pixel values
@@ -256,7 +257,7 @@ def minimizeReprojection(dof,d2dPoints1, d2dPoints2, d3dPoints1, d3dPoints2, w2c
     return residual.flatten()
 
 
-def estimateOdometry(img1,img2):
+def estimateOdometry(img1,img2,Proj1,Proj2):
     #img1 = [img1L,img1R]
     #img2 = [img2L,img2R]
 
@@ -266,7 +267,6 @@ def estimateOdometry(img1,img2):
     img2[L]  = cv2.resize(img2[L], IMSIZE) 
     img2[R]  = cv2.resize(img2[R], IMSIZE) 
 
-    Proj1,Proj2,_,_,_,_ = Camera_params()
 
     img1_disparity = estDisparity(img1[L],img1[R])
     img2_disparity = estDisparity(img2[L],img2[R])
@@ -355,14 +355,15 @@ def estimateOdometry(img1,img2):
 
 
 if __name__=='__main__':
-    P0L, P0R = getGt('./dataset/sequences/00/calib.txt')
-    P1L, P1R = getGt('./dataset/sequences/00/calib.txt') # same calibration file
+    P0L, P0R = getGt('./01/01/calib.txt')
+    P1L, P1R = getGt('./01/01/calib.txt') # same calibration file
     # print(P0)
     # print(P1)
+    
     assert (P0L[:,-1]==np.zeros(3)).all() == 1 # first camera translation is zero
     K = P0L[:,:-1]
 
-
+    '''
     ImT1_L = cv2.imread('./000001.png', 0)    #0 flag returns a grayscale image
     ImT1_R = cv2.imread('./1_000001.png', 0)
 
@@ -389,6 +390,34 @@ if __name__=='__main__':
     t_err, theta = getErrors(R, R_rel, t, t_rel)
     print('Translation error :', t_err, '\t Rotation error:', theta)
 
+    '''
 
+    curr_transX = 0.0
+    curr_transZ = 0.0
+
+    f = open("pred.txt","w")
+    for i in range(1,1101):
+        path1L = "./01/01/image_0/" + str(i-1).zfill(6) + ".png"
+        path1R = "./01/01/image_1/" + str(i-1).zfill(6) + ".png"
+        path2L = "./01/01/image_0/" + str(i).zfill(6) + ".png"
+        path2R = "./01/01/image_1/" + str(i).zfill(6) + ".png"
+
+        ImT1_L = cv2.imread(path1L, 0)    #0 flag returns a grayscale image
+        ImT1_R = cv2.imread(path1R, 0)
+
+        ImT2_L = cv2.imread(path2L, 0)
+        ImT2_R = cv2.imread(path2R, 0)
+        dofs, cost = estimateOdometry([ImT1_L,ImT1_R],[ImT2_L,ImT2_R],P0L,P0R)
+
+        curr_transX +=dofs[3]
+        curr_transZ +=dofs[5]
+        f.write("0.0 0.0 0.0 " + str(curr_transX) + " 0.0 0.0 0.0 " + str(0.0) + " 0.0 0.0 0.0 " + str(curr_transZ) + "\n")
+
+    f.close()
+
+
+
+
+        
 
 # exit()

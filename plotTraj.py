@@ -15,7 +15,7 @@ def readFile(filename):
     
     return translation
 
-trans = readFile("./dataset/poses/00.txt")
+trans = readFile("./pred.txt")
 
 
 nptrans = np.asarray(trans)
