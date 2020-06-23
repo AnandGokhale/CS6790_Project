@@ -1,104 +1,100 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as pyplot
 
 from scipy.optimize import least_squares
 from math import cos, sin
 
-from utils import *
-
-'''
-In the code, there is 
-1: Disparity
-2: Feature extraction
-3: Feature Matching
-4: 3D triangulation so far.
-
-'''
-#Global constants for left and Right
 L = 0
 
 R = 1
 
-IMSIZE = (1241, 376)  # (width, height) 
+IMSIZE = (1241, 376)
+
+def getGt(txt):
+    with open(txt, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        if 'P0' in line:
+            p0 = line.split(':')[1][1:]
+            p0 = p0.split(' ')
+            assert len(p0)==12
+            p0 = list(map(float, p0))
+        elif 'P1' in line:
+            p1 = line.split(':')[1][1:]
+            p1 = p1.split(' ')
+            assert len(p1)==12
+            p1 = list(map(float, p1))
+
+    return np.asarray(p0).reshape(3,4), np.asarray(p1).reshape(3,4)
+
 
 
 def estDisparity(imgL,imgR,engine):
     return np.divide(engine.compute(imgL,imgR).astype(np.float32),16.0)
 
 
-def debugDisparity(img1,img2,img1_disparity,img2_disparity):
-    cv2.imshow("Img1 left  ",img1[0])
-    cv2.imshow("Img1 Right ",img1[1])
-    cv2.imshow("Img2 left " ,img2[0])
-    cv2.imshow("Img2 Right ",img2[1])
+def fastDetect(img1L,img2L):
+    H,W = img1L.shape
+    TILE_H = 10
+    TILE_W = 20
+    kp = []
 
-    cv2.imshow("Img1 Disparity",img1_disparity)
+    featureEngine = cv2.FastFeatureDetector_create()
 
-    cv2.imshow("Img2 Disparity",img2_disparity)
+    for y in range(0, H, TILE_H):
+        for x in range(0, W, TILE_W):
+            imPatch = ImT1_L[y:y+TILE_H, x:x+TILE_W]
+            keypoints = featureEngine.detect(imPatch)
+            for pt in keypoints:
+                pt.pt = (pt.pt[0] + x, pt.pt[1] + y)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+            if (len(keypoints) > 10):
+                keypoints = sorted(keypoints, key=lambda x: -x.response)
+                for kpt in keypoints[0:10]:
+                    kp.append(kpt)
+            else:
+                for kpt in keypoints:
+                    kp.append(kpt)
 
-def orbfeatureDetector(img):
-    orb = cv2.ORB_create()
-    kp = orb.detect(img,None)
-    kp, des = orb.compute(img, kp)
-    return kp,des
+    trackPoints1 = cv2.KeyPoint_convert(kp)
+    trackPoints1 = np.expand_dims(trackPoints1, axis=1)
 
+    # Parameters for lucas kanade optical flow
+    lk_params = dict( winSize  = (15,15),
+                        maxLevel = 3,
+                        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 0.03))
 
-def debugOrb(img,kp):
-    cv2.imshow("Debugging Orb" , cv2.drawKeypoints(img, kp, None, color=(0,255,0), flags=0))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    trackPoints2, st, err = cv2.calcOpticalFlowPyrLK(img1L, img2L, trackPoints1, None, flags=cv2.MOTION_AFFINE, **lk_params)
 
-def debugMatcher(img1,kp1_matched,img2,kp2_matched):
-    imgDebug1 = cv2.drawKeypoints(img1, kp1_matched, None, color=(0,255,0))
-    imgDebug2 = cv2.drawKeypoints(img2, kp2_matched, None, color=(0,255,0))
+    # separate points that were tracked successfully
+    ptTrackable = np.where(st == 1, 1,0).astype(bool)
+    trackPoints1_KLT = trackPoints1[ptTrackable, ...]
+    trackPoints2_KLT_t = trackPoints2[ptTrackable, ...]
+    trackPoints2_KLT = np.around(trackPoints2_KLT_t)
 
-
-    cv2.imshow('frame 1', imgDebug1)
-    cv2.imshow('frame 2', imgDebug2)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-def Matcher(img1,img2,kp1,des1,kp2,des2):
-    kps1_m = []
-    kps2_m = []
-
-    FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-    search_params = dict(checks=50)   # or pass empty dictionary
-
-    flann = cv2.FlannBasedMatcher(index_params,search_params)
-    matches = flann.knnMatch(des1.astype(np.float32), des2.astype(np.float32), k=2)
-    # Need to draw only good matches, so create a mask
-
-    for (m,_) in matches:
-            kps2_m.append(kp2[m.trainIdx])
-            kps1_m.append(kp1[m.queryIdx])
+    # among tracked points take points within error measue
+    error = 4
+    errTrackablePoints = err[ptTrackable, ...]
+    errThresholdedPoints = np.where(errTrackablePoints < error, 1, 0).astype(bool)
+    trackPoints1_KLT = trackPoints1_KLT[errThresholdedPoints, ...]
+    trackPoints2_KLT = trackPoints2_KLT[errThresholdedPoints, ...]
 
 
-    #debugMatcher(img1,kps1_m,img2,kps2_m)
+    # check for validity of tracked point Coordinates
+    hPts = np.where(trackPoints2_KLT[:,1] >= H)
+    wPts = np.where(trackPoints2_KLT[:,0] >= W)
+    outTrackPts = hPts[0].tolist() + wPts[0].tolist()
+    outDeletePts = list(set(outTrackPts))
 
+    if len(outDeletePts) > 0:
+        trackPoints1_KLT_L = np.delete(trackPoints1_KLT, outDeletePts, axis=0)
+        trackPoints2_KLT_L = np.delete(trackPoints2_KLT, outDeletePts, axis=0)
+    else:
+        trackPoints1_KLT_L = trackPoints1_KLT
+        trackPoints2_KLT_L = trackPoints2_KLT
 
-    # Converting Keypoints to Pixel values
-    kp1_matched = []
-    kp2_matched = []
+    return trackPoints1_KLT_L,trackPoints2_KLT_L
 
-    for kp in kps1_m:
-        kp1_matched.append(kp.pt)
-
-    for kp in kps2_m:
-        kp2_matched.append(kp.pt)
-
-    kps1_m = np.asarray(kp1_matched)
-    kps2_m = np.asarray(kp2_matched)
-
-    return kps1_m,kps2_m
-    
 def featureEliminator(img1_disparity,img2_disparity,kp1_matched,kp2_matched,disparityMinThres = 0.0, disparityMaxThres = 100.0):
     kps1L = kp1_matched
     kps2L = kp2_matched
@@ -145,6 +141,7 @@ def triangulate3D(trackPointsL_3d,trackPointsR_3d,numPoints,Proj1,Proj2):
         d3dPoints[i, :] = (V[-1]/V[-1,-1]).T[:-1]
 
     return d3dPoints
+
 
 def generateAdjMatrix(d3dPointsT1,d3dPointsT2,distDifference=0.2):
     numPoints = d3dPointsT1.shape[0]
@@ -196,6 +193,8 @@ def findMaxClique(W):
 
 
     return clique
+
+
 
 def genEulerZXZMatrix(psi, theta, sigma):
     # ref http://www.u.arizona.edu/~pen/ame553/Notes/Lesson%2008-A.pdf 
@@ -257,6 +256,9 @@ def minimizeReprojection(dof,d2dPoints1, d2dPoints2, d3dPoints1, d3dPoints2, w2c
     return residual.flatten()
 
 
+
+
+
 def estimateOdometry(img1,img2,Proj1,Proj2):
     #img1 = [img1L,img1R]
     #img2 = [img2L,img2R]
@@ -266,7 +268,6 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     img1[R]  = cv2.resize(img1[R], IMSIZE) 
     img2[L]  = cv2.resize(img2[L], IMSIZE) 
     img2[R]  = cv2.resize(img2[R], IMSIZE) 
-
 
 
     block = 11
@@ -279,31 +280,20 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     img1_disparity = estDisparity(img1[L],img1[R],disparityEngine)
     img2_disparity = estDisparity(img2[L],img2[R],disparityEngine)
 
+    #Feature detection
 
-    #debugDisparity(img1,img2,img1_disparity,img2_disparity)
+    trackPoints1_KLT_L,trackPoints2_KLT_L = fastDetect(img1[L],img2[L])
 
-    
-    #Calculating img1 twice for now, can be made more efficient in the future
-    kp1,des1 = orbfeatureDetector(img1[L])
-    kp2,des2 = orbfeatureDetector(img2[L])
 
-    #debugOrb(img1[L],kp1)
-    #debugOrb(img2[L],kp2)
 
-    
-    #Feature Matching
 
-    kp1_matched,kp2_matched = Matcher(img1[L],img2[L],kp1,des1,kp2,des2)
+    trackPoints1L_3d,trackPoints1R_3d,trackPoints2L_3d,trackPoints2R_3d = featureEliminator(img1_disparity,img2_disparity,trackPoints1_KLT_L,trackPoints2_KLT_L)
 
-    #Feature Selection based on Disparity
-    trackPoints1L_3d,trackPoints1R_3d,trackPoints2L_3d,trackPoints2R_3d = featureEliminator(img1_disparity,img2_disparity,kp1_matched,kp2_matched)
 
-    
     # 3d triangulation
     numPoints = trackPoints1L_3d.shape[0]
     d3dPointsT1 = triangulate3D(trackPoints1L_3d,trackPoints1R_3d,numPoints,Proj1,Proj2)
     d3dPointsT2 = triangulate3D(trackPoints2L_3d,trackPoints2R_3d,numPoints,Proj1,Proj2)
-
 
     # Eliminate inliers
     W = generateAdjMatrix(d3dPointsT1,d3dPointsT2,0.2)
@@ -320,6 +310,7 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     # points = features
     trackedPoints1L = trackPoints1L_3d[clique]
     trackedPoints2L = trackPoints2L_3d[clique]
+
 
     dSeed = np.zeros(6)
 
@@ -352,12 +343,6 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     
 
     return optRes.x, optRes.cost
-    
-#clique size check
-# reproj error check
-# r, t generation
-# plot on map vs ground truth
-
 
 
 
@@ -402,7 +387,7 @@ if __name__=='__main__':
     curr_transX = 0.0
     curr_transZ = 0.0
 
-    f = open("pred2.txt","w")
+    f = open("trying.txt","w")
 
     RmatGlobal = np.eye(3)
 
@@ -434,10 +419,3 @@ if __name__=='__main__':
         f.write("0.0 0.0 0.0 " + str(transGlobal[0]) + " 0.0 0.0 0.0 " + str(transGlobal[1]) + " 0.0 0.0 0.0 " + str(transGlobal[2]) + "\n")
 
     f.close()
-
-
-
-
-        
-
-# exit()
