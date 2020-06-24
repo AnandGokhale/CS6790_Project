@@ -296,13 +296,18 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     d3dPointsT2 = triangulate3D(trackPoints2L_3d,trackPoints2R_3d,numPoints,Proj1,Proj2)
 
     # Eliminate inliers
-    W = generateAdjMatrix(d3dPointsT1,d3dPointsT2,0.2)
+    # 
+    distDifference = 0.2
+    lClique = 0
+    clique = []
+    while lClique < 6 and d3dPointsT1.shape[0] >= 6:
+        # in-lier detection algorithm
+        W = generateAdjMatrix(d3dPointsT1,d3dPointsT2,distDifference)
+        clique = findMaxClique(W)
+        lClique = len(clique)
+        distDifference *= 2
 
-    #Max Clique TIME BOISSS
-
-    clique = findMaxClique(W)
-
-
+    
     # pick up clique point 3D coords and features for optimization
     cliqued3dPointT1 = d3dPointsT1[clique]
     cliqued3dPointT2 = d3dPointsT2[clique]
@@ -312,37 +317,41 @@ def estimateOdometry(img1,img2,Proj1,Proj2):
     trackedPoints2L = trackPoints2L_3d[clique]
 
 
-    dSeed = np.zeros(6)
 
-    optRes = least_squares(minimizeReprojection, dSeed, method='lm', max_nfev=2000,
-                        args=(trackedPoints1L, trackedPoints2L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
+    if (trackedPoints1L.shape[0] >= 6):
+        dSeed = np.zeros(6)
 
-    
-    error = optRes.fun
-    pointsInClique = len(clique)
-    e = error.reshape((pointsInClique*2, 3))
-    errorThreshold = 0.5
-    xRes1 = np.where(e[0:pointsInClique, 0] >= errorThreshold)
-    yRes1 = np.where(e[0:pointsInClique, 1] >= errorThreshold)
-    zRes1 = np.where(e[0:pointsInClique, 2] >= errorThreshold)
-    xRes2 = np.where(e[pointsInClique:2*pointsInClique, 0] >= errorThreshold)
-    yRes2 = np.where(e[pointsInClique:2*pointsInClique, 1] >= errorThreshold)
-    zRes2 = np.where(e[pointsInClique:2*pointsInClique, 2] >= errorThreshold)
+        optRes = least_squares(minimizeReprojection, dSeed, method='lm', max_nfev=2000,
+                            args=(trackedPoints1L, trackedPoints2L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
 
-    pruneIdx = xRes1[0].tolist() + yRes1[0].tolist() + zRes1[0].tolist() + (xRes2[0] - pointsInClique).tolist() + (yRes2[0] - pointsInClique).tolist() +  (zRes2[0] - pointsInClique).tolist()
-    if (len(pruneIdx) > 0):
-        uPruneIdx = list(set(pruneIdx))
-        trackedPoints1L = np.delete(trackedPoints1L, uPruneIdx, axis=0)
-        trackedPoints2L = np.delete(trackedPoints2L, uPruneIdx, axis=0)
-        cliqued3dPointT1 = np.delete(cliqued3dPointT1, uPruneIdx, axis=0)
-        cliqued3dPointT2 = np.delete(cliqued3dPointT2, uPruneIdx, axis=0)
         
-        if (trackedPoints1L.shape[0] >= 6):
-            optRes = least_squares(minimizeReprojection, optRes.x, method='lm', max_nfev=2000,
-                        args=(trackedPoints1L, trackedPoints2L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
-    
+        error = optRes.fun
+        pointsInClique = len(clique)
+        e = error.reshape((pointsInClique*2, 3))
+        errorThreshold = 0.5
+        xRes1 = np.where(e[0:pointsInClique, 0] >= errorThreshold)
+        yRes1 = np.where(e[0:pointsInClique, 1] >= errorThreshold)
+        zRes1 = np.where(e[0:pointsInClique, 2] >= errorThreshold)
+        xRes2 = np.where(e[pointsInClique:2*pointsInClique, 0] >= errorThreshold)
+        yRes2 = np.where(e[pointsInClique:2*pointsInClique, 1] >= errorThreshold)
+        zRes2 = np.where(e[pointsInClique:2*pointsInClique, 2] >= errorThreshold)
 
-    return optRes.x, optRes.cost
+        pruneIdx = xRes1[0].tolist() + yRes1[0].tolist() + zRes1[0].tolist() + (xRes2[0] - pointsInClique).tolist() + (yRes2[0] - pointsInClique).tolist() +  (zRes2[0] - pointsInClique).tolist()
+        if (len(pruneIdx) > 0):
+            uPruneIdx = list(set(pruneIdx))
+            trackedPoints1L = np.delete(trackedPoints1L, uPruneIdx, axis=0)
+            trackedPoints2L = np.delete(trackedPoints2L, uPruneIdx, axis=0)
+            cliqued3dPointT1 = np.delete(cliqued3dPointT1, uPruneIdx, axis=0)
+            cliqued3dPointT2 = np.delete(cliqued3dPointT2, uPruneIdx, axis=0)
+            
+            if (trackedPoints1L.shape[0] >= 6):
+                optRes = least_squares(minimizeReprojection, optRes.x, method='lm', max_nfev=2000,
+                            args=(trackedPoints1L, trackedPoints2L, cliqued3dPointT1, cliqued3dPointT2, Proj1))
+        
+
+        return optRes.x, optRes.cost
+
+    return [0,0,0,0,0,0],0
 
 
 
@@ -387,7 +396,7 @@ if __name__=='__main__':
     curr_transX = 0.0
     curr_transZ = 0.0
 
-    f = open("trying.txt","w")
+    f = open("tryingrecur.txt","w")
 
     RmatGlobal = np.eye(3)
 

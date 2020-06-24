@@ -15,7 +15,7 @@ def readFile(filename):
     
     return translation
 
-trans = readFile("./trying.txt")
+trans = readFile("./tryingrecur.txt")
 
 gt = readFile("../01/01/01.txt")
 
@@ -47,6 +47,6 @@ cv2.imshow('Trajectory', traj)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-cv2.imwrite("Trajectory.png",traj)
+cv2.imwrite("Trajectory2.0.png",traj)
 
 
