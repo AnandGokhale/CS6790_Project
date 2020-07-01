@@ -190,6 +190,9 @@ def findMaxClique(W):
         if maxc == 0:
             break
         clique.append(maxn)
+        
+        if (len(clique) > 100):
+            break   
 
 
     return clique
