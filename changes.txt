@@ -1,1 +1,0 @@
-Changed params of cv2.StereoSGBM_create
