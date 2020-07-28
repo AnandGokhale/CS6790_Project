@@ -1,62 +1,61 @@
 import cv2
 import numpy as np
 import argparse
-import os
+import matplotlib.pyplot as plt
+parser = argparse.ArgumentParser()
+parser.add_argument('--gt', type=str, help='ground truth file')
+parser.add_argument('--pred', type=str, help='prediction file',nargs='+')
+parser.add_argument('--labels', type=str, nargs='+', help='labels for the file')
+parser.add_argument('--loc', type=str, help='location of legend', default='ur')
+# example usage : python plotTraj.py --gt ./dataset/poses/00.txt --pred gftt-brief/00_p.txt Howard/fast/final\ output/results/00.txt
+# ./StereoDSO/kitti/00.txt --labels sptam_gftt_brief howard_fast stereo_dso 
+args = parser.parse_args()
 
+
+loc_dict  = {'ur':'upper right', 'lr':'lower right', 'ul':'upper left', 'll':'lower left'}
 def readFile(filename):
-    f = open(filename,"r")
-    f1 =f.readlines()
+    f = open(filename, "r")
+    f1 = f.readlines()
 
     translation = []
 
     for x in f1:
-        temp = (x.split())
-        tlist = [float(temp[3]),float(temp[7]),float(temp[11])]
+        temp = x.split()
+        tlist = [float(temp[3]), float(temp[7]), float(temp[11])]
         translation.append(tlist)
-    
+
     return translation
 
 
-if __name__=='__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-g", "--gt",required = True,type = str,help='path to folder containing ground truth for kitti, containing all 11 ground truths')
-    parser.add_argument("-p", "--pred",required = True,type = str,help='path to folder where predicted results are stored')
-    parser.add_argument("-o", "--output",required = True,type = str,help='path to folder where plotted results are to be stored')
-    args = parser.parse_args()
-
-    for i in range(0,11):
-        s = str(i).zfill(2) + ".txt"
-        print("Reading " + os.path.join(args.pred,s) )
-        trans   = readFile(os.path.join(args.pred,s))
-        print("Reading " + os.path.join(args.gt,s) )
-        gt      = readFile(os.path.join(args.gt,s))
-
-        nptrans = np.asarray(trans)
-        gt = np.asarray(gt)
-
-        canvasH = 1200
-        canvasW = 1200
-        traj = np.zeros((canvasH,canvasW,3), dtype=np.uint8)
-
-        for t in gt:
-            t[0] = int((t[0]) + 500)
-            t[2] = int((t[2]) + 200)
-            #print(t)
-            cv2.circle(traj, (int(t[0]),int(t[2])), 1, (0,255,0), 2)
+#trans = readFile(
+#    "/media/sumanth/a2790194-52bb-459d-aea3-c04d3783dd52/SixthSem/GPCV/cgarg-stereo-visual-odometry/src/svoPoseOut_Clique.txt"
+#)
+trans_list = []
+for filename in args.pred:
+	trans_list.append(np.asarray(readFile(filename)))
+gt = readFile(args.gt)
+gt = np.asarray(gt)
 
 
-        for t in trans:
-            t[0] = int((t[0]) + 500)
-            t[2] = int((t[2]) + 200)
-            #print(t)
-            cv2.circle(traj, (t[0],t[2]), 1, (0,0,255), 2)
+canvasH = 500
+canvasW = 800
+traj = np.zeros((canvasH, canvasW, 3), dtype=np.uint8)
 
+#for t in gt:
+#    t[0] = int((t[0] + 20))
+#    t[2] = int((t[2] + 400))
+#    print(t)
+#    cv2.circle(traj, (int(t[0]), int(t[2])), 1, (0, 255, 0), 2)
 
-        cv2.imshow('Trajectory', traj)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+plt.plot(gt[:,0], gt[:,2], label='Ground truth')
 
-        cv2.imwrite(os.path.join(args.output,str(i).zfill(2) + ".png"),traj)
-
+for i in range(len(trans_list)):
+	trans = trans_list[i]
+	label = args.labels[i]
+	plt.plot(trans[:,0], trans[:,2], label=label)
+plt.legend(loc=loc_dict[args.loc.lower()])
+plt.xlabel(r'x$\rightarrow$')
+plt.ylabel(r'z$\rightarrow$')
+plt.savefig("Trajectory.png")
+plt.show()
 
