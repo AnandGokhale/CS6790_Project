@@ -1,0 +1,240 @@
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	7.843509
+      mean	0.034213
+    median	0.022081
+       min	0.001241
+      rmse	0.166286
+       sse	125.535832
+       std	0.162728
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	11.928940
+      mean	0.036612
+    median	0.026521
+       min	0.001972
+      rmse	0.180458
+       sse	151.752640
+       std	0.176705
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.397299
+      mean	0.029295
+    median	0.019826
+       min	0.002363
+      rmse	0.045853
+       sse	1.681982
+       std	0.035274
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.248490
+      mean	0.040099
+    median	0.033133
+       min	0.004445
+      rmse	0.050059
+       sse	0.676590
+       std	0.029966
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	5.501435
+      mean	0.029842
+    median	0.018763
+       min	0.000926
+      rmse	0.136580
+       sse	51.485345
+       std	0.133280
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	5.385695
+      mean	0.039416
+    median	0.027128
+       min	0.001982
+      rmse	0.168696
+       sse	31.304079
+       std	0.164026
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	3.013794
+      mean	0.026018
+    median	0.015605
+       min	0.000931
+      rmse	0.104104
+       sse	11.921446
+       std	0.100800
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.279704
+      mean	0.034527
+    median	0.024402
+       min	0.001176
+      rmse	0.049566
+       sse	9.999165
+       std	0.035563
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.579724
+      mean	0.034092
+    median	0.023801
+       min	0.000911
+      rmse	0.053760
+       sse	4.595274
+       std	0.041567
+
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.338922
+      mean	0.029321
+    median	0.019389
+       min	0.001571
+      rmse	0.043117
+       sse	2.230851
+       std	0.031612
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	3.026437
+      mean	0.072626
+    median	0.051564
+       min	0.002655
+      rmse	0.137757
+       sse	86.154933
+       std	0.117057
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	4.883745
+      mean	0.065319
+    median	0.048704
+       min	0.000949
+      rmse	0.120640
+       sse	67.822059
+       std	0.101427
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.773425
+      mean	0.050318
+    median	0.040165
+       min	0.001042
+      rmse	0.068021
+       sse	3.701518
+       std	0.045771
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.230743
+      mean	0.053348
+    median	0.045586
+       min	0.003911
+      rmse	0.063046
+       sse	1.073206
+       std	0.033597
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	1.486132
+      mean	0.051865
+    median	0.041382
+       min	0.001439
+      rmse	0.075596
+       sse	15.772561
+       std	0.054997
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	2.478256
+      mean	0.047838
+    median	0.039544
+       min	0.004310
+      rmse	0.092158
+       sse	9.342346
+       std	0.078769
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	1.604770
+      mean	0.048920
+    median	0.039191
+       min	0.001817
+      rmse	0.078762
+       sse	6.823848
+       std	0.061728
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.708293
+      mean	0.052261
+    median	0.043699
+       min	0.001543
+      rmse	0.064615
+       sse	16.992419
+       std	0.037998
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.507462
+      mean	0.057644
+    median	0.047408
+       min	0.004220
+      rmse	0.072411
+       sse	8.336996
+       std	0.043824
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(not aligned)
+
+       max	0.424578
+      mean	0.065301
+    median	0.054284
+       min	0.002995
+      rmse	0.080992
+       sse	7.871557
+       std	0.047910
+
