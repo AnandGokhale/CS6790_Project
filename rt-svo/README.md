@@ -1,4 +1,4 @@
-# CS6790_Project
+# RT-SVO
 Project on visual odometry For The Geometry and Photometry Course offered in IIT Madras, Spring 2020.
 
 The code provided is a python implementation of [[1]](#1).
