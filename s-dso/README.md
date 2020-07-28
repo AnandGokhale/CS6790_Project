@@ -8,20 +8,20 @@ I removed loop closure and relocalization in the ORB_SLAM2, so that the ORB_SLAM
 
 Some results are in this readme file, section 6.
 
-# DSO: Direct Sparse Odometry
+# Stereo DSO: Stereo Direct Sparse Odometry
 
 For more information see
 [https://vision.in.tum.de/dso](https://vision.in.tum.de/dso)
 
 ### 1. Related Papers
-* **Direct Sparse Odometry**, *J. Engel, V. Koltun, D. Cremers*, In arXiv:1607.02565, 2016
+* **Stereo DSO: Large-Scale Direct Sparse Visual Odometry with Stereo Cameras**, *Rui Wang, Martin Schwörer, Daniel Cremers*, In arXiv:1708.07878, 2017
 * **A Photometrically Calibrated Benchmark For Monocular Visual Odometry**, *J. Engel, V. Usenko, D. Cremers*, In arXiv:1607.02555, 2016
 
 Get some datasets from [https://vision.in.tum.de/mono-dataset](https://vision.in.tum.de/mono-dataset) .
 
 ### 2. Installation
 
-	git clone https://github.com/JakobEngel/dso.git
+	git clone https://github.com/AnandGokhale/CS6790_Project.git
 
 #### 2.1 Required Dependencies
 
@@ -92,15 +92,14 @@ OpenCV and Pangolin need to be installed.
 
 
 ### 3 Usage
-Run on a dataset from [https://vision.in.tum.de/mono-dataset](https://vision.in.tum.de/mono-dataset) using
+Run on a sequence from Kitti after compiling using :
 
-		bin/dso_dataset \
-			files=XXXXX/sequence_XX/images.zip \
-			calib=XXXXX/sequence_XX/camera.txt \
-			gamma=XXXXX/sequence_XX/pcalib.txt \
-			vignette=XXXXX/sequence_XX/vignette.png \
-			preset=0 \
-			mode=0
+		bin/dso_dataset_kitti \
+		files=XXXXXXXX/sequences/00/  \
+		calib=XXXXXXXX/camera_left.txt \
+		calibRight=XXXXXXXX/camera_right.txt \
+		preset=0 mode=1 
+
 
 See [https://github.com/JakobEngel/dso_ros](https://github.com/JakobEngel/dso_ros) for a minimal example on
 how the library can be used from another project. It should be straight forward to implement extentions for 
@@ -290,18 +289,3 @@ For commercial purposes, we also offer a professional version, see
 [http://vision.in.tum.de/dso](http://vision.in.tum.de/dso) for
 details.
 
-### 6 Compare to ORB_SLAM2
-
-KITTI 00 trajectory:
-
-![00.png](http://7xqfkw.com1.z0.glb.clouddn.com/image/github.com/JingeTu/StereoDSO/00.png)
-
-Statistical results (my rotation is better): 
-
-![avg_rl.png](http://7xqfkw.com1.z0.glb.clouddn.com/image/github.com/JingeTu/StereoDSO/avg_rl.png)
-
-![avg_rs.png](http://7xqfkw.com1.z0.glb.clouddn.com/image/github.com/JingeTu/StereoDSO/avg_rs.png)
-
-![avg_tl.png](http://7xqfkw.com1.z0.glb.clouddn.com/image/github.com/JingeTu/StereoDSO/avg_tl.png)
-
-![avg_ts.png](http://7xqfkw.com1.z0.glb.clouddn.com/image/github.com/JingeTu/StereoDSO/avg_ts.png)
