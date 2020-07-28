@@ -1,5 +1,5 @@
 # CS6790_Project
-Project on odometry for the Geometry and Photometry for Computer Vision course offered in IIT Madras, Spring 2020.
+Project on stereo-based visual odometry for the Geometry and Photometry for Computer Vision course offered in IIT Madras, Spring 2020.
 
 
 # Structure
