@@ -1,13 +1,5 @@
 Implementation for Stereo DSO from TUM.
 
-Stereo completed. Now adding IMU, the main IMU code is in CoarseTracker.
-
-The results of mine compared to ORB_SLAM2 in the 11 KITTI sequences are in the folder `results`.
-
-I removed loop closure and relocalization in the ORB_SLAM2, so that the ORB_SLAM2 is much like Stereo DSO for it's an visual odometry and only 2d-2d tracking.
-
-Some results are in this readme file, section 6.
-
 # Stereo DSO: Stereo Direct Sparse Odometry
 
 For more information see
