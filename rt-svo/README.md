@@ -7,7 +7,7 @@ The code provided is a python implementation of [[1]](#1).
 To evaluate on a sequence, run 
 <pre><code>python svo.py --seqPath /path/to/kitti/sequence/ --feature feature_detector --resultsPath /path/to/results/file
 </code></pre>
-The <code> feature_detector </code> can be one of "FAST" or "BRIEF". Example  usage : 
+The <code> feature_detector </code> can be one of "FAST" or "GFTT". Example  usage : 
 <pre><code>python svo.py --seqPath ./dataset/sequences/00/ --feature FAST --resultsPath ./results_00.txt
 </code></pre>
 
