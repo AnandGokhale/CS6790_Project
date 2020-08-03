@@ -3,6 +3,8 @@ Project on stereo-based visual odometry for the Geometry and Photometry for Comp
 
 
 # Structure
+The final Project report is in the file cs6790_report.pdf 
+
 A python implementation of [[1]](#1) is provided in the <code>rt-svo</code> folder. 
 
 The <code>s-dso</code> folder contains a modified version of the Stereo DSO [[2]](#2) implementation here : https://github.com/JingeTu/StereoDSO
